@@ -1,66 +1,66 @@
-# 🎬 MetricStream: Streaming Platform Data Pipeline & Analytics Engine
+# MetricStream - Database Management System
 
-MetricStream is a production-ready relational database model and data-seeding pipeline engineered for modern video-on-demand architectures. It maps, injects, and evaluates critical platform data points: user acquisition, service monetization plans, cross-entity subscriptions, and high-frequency viewing telemetry logs.
+## 1. Project Explanation
+MetricStream is a relational database management platform tailored for a subscription-based streaming provider. The system is engineered to capture user profiles, manage multiple operational subscription tiers, monitor retention lifecycle statuses, and log streaming data metrics across distinct device forms. By aggregating these relationship datasets, the architecture supplies a pipeline for calculating core business performance factors like Monthly Recurring Revenue (MRR), subscriber churn rates, and cross-platform device usage engagement.
 
----
+## 2. ER Diagram
+The relational architecture follows an integrated network of one-to-many dependencies to record metrics cleanly without duplication:
 
-## 📖 Table of Contents
-1. [Project Architecture Overview](#-project-architecture-overview)
-2. [Database Schema & Entity-Relationship Model](#-database-schema--entity-relationship-model)
-3. [Data Dictionary & Constraints](#-data-dictionary--constraints)
-4. [The Raw SQL DDL & Seed Scripts](#-the-raw-sql-ddl--seed-scripts)
-5. [Deployment Guide: How to Get the Output](#-deployment-guide-how-to-get-the-output)
-6. [Analytical Insights & Business KPIs](#-analytical-insights--business-kpis)
+*   **Users to Subscriptions (1:N):** A user can manage successive subscription cycles over time, but each unique billing subscription profile maps back to a single user account.
+*   **Plans to Subscriptions (1:N):** A pricing plan tier hosts multiple customer subscriptions simultaneously, while a specific subscription lifecycle event enforces exactly one plan rate.
+*   **Users to Usage Logs (1:N):** One account produces infinite session stream metrics, but every individual stream row traces back strictly to the initiating viewer.
 
----
+*(Note: Add your actual ER diagram image to the root folder of this repository and name it `er_diagram.png`)*
+![ER Diagram](er_diagram.png)
 
-## 🚀 Project Architecture Overview
+## 3. Relational Tables
+The normalized schema uses four foundational tables:
 
-MetricStream simulates the complete data footprint of an active media streaming service[cite: 1, 2, 3]. It bridges business infrastructure with real-time application behavior by managing three primary business layers:
-*   **User Attribution Layer**: Evaluates global onboarding distributions alongside marketing channel effectiveness (`referral_source`).
-*   **Billing & Tier Optimization Layer**: Directs access rules across distinct monetization packages ($9.99 Basic, $15.49 Standard, and $19.99 Premium tiers).
-*   **Event-Driven Telemetry Layer**: Feeds user watch habits directly into granular session tracking metrics (`minutes_streamed`) categorized by hardware endpoints.
+### 1. Users
+Tracks global consumer profile and acquisition metadata.
+*   `user_id` (INT, Primary Key): Unique row index for the individual user profile.
+*   `name` (VARCHAR): Standard text string containing the customer's full name.
+*   `email` (VARCHAR, Unique): Validated direct email address string.
+*   `country` (VARCHAR): Demographic country string used for geographic performance analysis.
+*   `signup_date` (DATE): Standard date tracking when the user profile was created.
+*   `referral_source` (VARCHAR): Direct attribute tracking user acquisition channel origins.
 
----
+### 2. Plans
+Houses available tier parameters, prices, and concurrent structural streams.
+*   `plan_id` (INT, Primary Key): Unique functional identifier for the subscription plan tier.
+*   `plan_name` (VARCHAR): Operational identifier naming the tier (Basic, Standard, Premium).
+*   `monthly_price` (DECIMAL): Base pricing metric capturing monthly recurring income amounts.
+*   `max_screens` (INT): Total integer allowance of parallel streams.
 
-## 📊 Database Schema & Entity-Relationship Model
+### 3. Subscriptions
+Maintains time-series financial life logs and operational service states.
+*   `sub_id` (INT, Primary Key): Unique billing system relationship row index.
+*   `user_id` (INT, Foreign Key): System relationship index referencing `Users(user_id)`.
+*   `plan_id` (INT, Foreign Key): System relationship index referencing `Plans(plan_id)`.
+*   `start_date` (DATE): Active opening stamp for the current subscription tier term.
+*   `end_date` (DATE): Closing or renewal date indicator for the current subscription tier term.
+*   `status` (VARCHAR): Descriptive system status text (Active, Cancelled, Expired).
 
-The underlying system is built on strong relational integrity. Subscriptions and playback events are structurally tied to active customer records, enforcing database constraints across your ecosystem.
+### 4. Usage_Logs
+Logs telemetry metrics for stream sessions.
+*   `log_id` (INT, Primary Key): Unique streaming event index.
+*   `user_id` (INT, Foreign Key): System relationship index referencing `Users(user_id)`.
+*   `activity_date` (DATE): Calendar stamp tracking exactly when the streaming session occurred.
+*   `minutes_streamed` (INT): Performance duration tracking viewing lengths.
+*   `device_type` (VARCHAR): Categorical text capturing screen forms (Mobile, Laptop, Smart TV, Web).
 
-### ER Diagram (Mermaid)
+## 4. How to Run It and Get Output
 
-```mermaid
-erDiagram
-    USERS ||--o{ SUBSCRIPTIONS : "holds"
-    USERS ||--o{ USAGE_LOGS : "generates"
-    PLANS ||--o{ SUBSCRIPTIONS : "defines"
-    
-    USERS {
-        INT user_id PK
-        VARCHAR name
-        VARCHAR email UK
-        VARCHAR country
-        DATE signup_date
-        VARCHAR referral_source
-    }
-    PLANS {
-        INT plan_id PK
-        VARCHAR plan_name
-        DECIMAL monthly_price
-        INT max_screens
-    }
-    SUBSCRIPTIONS {
-        INT sub_id PK
-        INT user_id FK
-        INT plan_id FK
-        DATE start_date
-        DATE end_date
-        VARCHAR status
-    }
-    USAGE_LOGS {
-        INT log_id PK
-        INT user_id FK
-        DATE activity_date
-        INT minutes_streamed
-        VARCHAR device_type
-    }
+### Execution Environment Setup
+1. Open your database GUI tool (such as **pgAdmin 4** or **DBeaver**) connected to your target **PostgreSQL** instance.
+2. Open a new Query Tool session and execute the structural commands found in your modified `schema.sql` script to establish the database layout.
+3. Open a separate query panel, copy the full dataset from your corrected `data_import.sql` script, and execute it to populate your relational tables.
+
+### Extracting System Output
+To verify system viability and read data metrics, open your script containing `analytics_queries.sql` and run individual analytical commands. 
+
+For example, highlight and run the following query to view total active streams by device:
+```sql
+SELECT device_type, COUNT(log_id) AS total_sessions
+FROM Usage_Logs
+GROUP BY device_type;
