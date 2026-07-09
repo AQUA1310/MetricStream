@@ -1,33 +1,66 @@
-# MetricStream: Subscription & Viewer Engagement Analytics System
+# 🎬 MetricStream: Streaming Platform Data Pipeline & Analytics Engine
 
-A comprehensive SQL-based database management and analytical system designed for a subscription-based video streaming platform (similar to Netflix or Hotstar). This project focuses on analyzing platform business health, calculating content consumption metrics, tracking data security partitions, and monitoring subscriber churn rates.
+MetricStream is a production-ready relational database model and data-seeding pipeline engineered for modern video-on-demand architectures. It maps, injects, and evaluates critical platform data points: user acquisition, service monetization plans, cross-entity subscriptions, and high-frequency viewing telemetry logs.
 
-## 🚀 System Architecture & Relational Schema
+---
 
-The core relational database schema maps the dependencies between user actions, commercial tiers, and real-time behavioral logs using transactional normalization practices.
+## 📖 Table of Contents
+1. [Project Architecture Overview](#-project-architecture-overview)
+2. [Database Schema & Entity-Relationship Model](#-database-schema--entity-relationship-model)
+3. [Data Dictionary & Constraints](#-data-dictionary--constraints)
+4. [The Raw SQL DDL & Seed Scripts](#-the-raw-sql-ddl--seed-scripts)
+5. [Deployment Guide: How to Get the Output](#-deployment-guide-how-to-get-the-output)
+6. [Analytical Insights & Business KPIs](#-analytical-insights--business-kpis)
 
-1. **Users Table (`Users`)**: Captures registration specifics, geographical location data, and user attribution channels.
-2. **Plans Table (`Plans`)**: Configures product packaging metrics, pricing schedules, and multi-device connection limits.
-3. **Subscriptions Table (`Subscriptions`)**: Triggers historical status paths (`Active`, `Cancelled`, `Expired`) managing historical user lifecycle footprints.
-4. **Usage Logs Table (`Usage_Logs`)**: High-throughput streaming metadata capture engine indexing daily device metrics and streaming durations.
+---
 
-## 📈 Analytical Capabilities & Business Insights
+## 🚀 Project Architecture Overview
 
-The analytical engine runs a robust diagnostic suite optimized via advanced SQL methodologies (`CTEs`, `Window Functions`, `Set Operations`, and `Subqueries`) to surface critical data layers:
+MetricStream simulates the complete data footprint of an active media streaming service[cite: 1, 2, 3]. It bridges business infrastructure with real-time application behavior by managing three primary business layers:
+*   **User Attribution Layer**: Evaluates global onboarding distributions alongside marketing channel effectiveness (`referral_source`).
+*   **Billing & Tier Optimization Layer**: Directs access rules across distinct monetization packages ($9.99 Basic, $15.49 Standard, and $19.99 Premium tiers).
+*   **Event-Driven Telemetry Layer**: Feeds user watch habits directly into granular session tracking metrics (`minutes_streamed`) categorized by hardware endpoints.
 
-* **Revenue Analysis**: Automatically aggregates Monthly Recurring Revenue (MRR) metrics and partitions dynamic user monetization data across unique geographic locations.
-* **Viewer Behavioral Segmentation**: Uses conditional processing strategies to catalog users into explicit platform personas (`Binge Watcher`, `Regular Streamer`, `Low Engagement`) depending on their volume of streaming activity.
-* **Platform Churn Lifecycle Management**: Monitors platform churn rates dynamically, measuring the precise average timeline decay (`avg_days_before_churn`) calculated between initial user signup paths and cancellation logs.
-* **Concurrency & Cross-Platform Metrics**: Executes cross-join intersection tests targeting specific cross-device activities (e.g., matching users concurrently streaming on both `Mobile` and `Smart TV`).
-* **Dynamic Regional Ranking**: Implements algorithmic scaling via `DENSE_RANK() OVER (PARTITION BY country ORDER BY ...)` to locate peak platform context consumers broken down inside localized markets.
+---
 
-## 🛠️ Tech Stack & Setup Instructions
+## 📊 Database Schema & Entity-Relationship Model
 
-* **Engine Platform**: PostgreSQL / Standard SQL Compatible Database Engines
-* **Database Language Core**: Advanced SQL (Structured Query Language)
+The underlying system is built on strong relational integrity. Subscriptions and playback events are structurally tied to active customer records, enforcing database constraints across your ecosystem.
 
-### Getting Started
+### ER Diagram (Mermaid)
 
-1. **Schema Initialization**: Clone the repository and execute the database tables layout scripts locally:
-   ```bash
-   psql -U your_username -d your_database_name -f schema.sql
+```mermaid
+erDiagram
+    USERS ||--o{ SUBSCRIPTIONS : "holds"
+    USERS ||--o{ USAGE_LOGS : "generates"
+    PLANS ||--o{ SUBSCRIPTIONS : "defines"
+    
+    USERS {
+        INT user_id PK
+        VARCHAR name
+        VARCHAR email UK
+        VARCHAR country
+        DATE signup_date
+        VARCHAR referral_source
+    }
+    PLANS {
+        INT plan_id PK
+        VARCHAR plan_name
+        DECIMAL monthly_price
+        INT max_screens
+    }
+    SUBSCRIPTIONS {
+        INT sub_id PK
+        INT user_id FK
+        INT plan_id FK
+        DATE start_date
+        DATE end_date
+        VARCHAR status
+    }
+    USAGE_LOGS {
+        INT log_id PK
+        INT user_id FK
+        DATE activity_date
+        INT minutes_streamed
+        VARCHAR device_type
+    }
