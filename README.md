@@ -1,66 +1,357 @@
-# MetricStream - Database Management System
+# MetricStream — Database Management System
 
-## 1. Project Explanation
-MetricStream is a relational database management platform tailored for a subscription-based streaming provider. The system is engineered to capture user profiles, manage multiple operational subscription tiers, monitor retention lifecycle statuses, and log streaming data metrics across distinct device forms. By aggregating these relationship datasets, the architecture supplies a pipeline for calculating core business performance factors like Monthly Recurring Revenue (MRR), subscriber churn rates, and cross-platform device usage engagement.
+A relational database management system for a subscription-based streaming platform. The project models users, subscription plans, subscription lifecycles, and streaming activity while supporting analytical SQL queries for business insights such as Monthly Recurring Revenue (MRR), churn analysis, and device usage statistics.
 
-## 2. ER Diagram
-The relational architecture follows an integrated network of one-to-many dependencies to record metrics cleanly without duplication:
+---
 
-*   **Users to Subscriptions (1:N):** A user can manage successive subscription cycles over time, but each unique billing subscription profile maps back to a single user account.
-*   **Plans to Subscriptions (1:N):** A pricing plan tier hosts multiple customer subscriptions simultaneously, while a specific subscription lifecycle event enforces exactly one plan rate.
-*   **Users to Usage Logs (1:N):** One account produces infinite session stream metrics, but every individual stream row traces back strictly to the initiating viewer.
+# Project Structure
 
-*(Note: Add your actual ER diagram image to the root folder of this repository and name it `er_diagram.png`)*
-![ER Diagram](er_diagram.png)
+```
+MetricStream/
+│── schema.sql              # Database schema (CREATE TABLE statements)
+│── data_import.sql         # Sample data insertion script
+│── analytics_queries.sql   # Analytical SQL queries
+└── README.md               # Project documentation
+```
 
-## 3. Relational Tables
-The normalized schema uses four foundational tables:
+---
 
-### 1. Users
-Tracks global consumer profile and acquisition metadata.
-*   `user_id` (INT, Primary Key): Unique row index for the individual user profile.
-*   `name` (VARCHAR): Standard text string containing the customer's full name.
-*   `email` (VARCHAR, Unique): Validated direct email address string.
-*   `country` (VARCHAR): Demographic country string used for geographic performance analysis.
-*   `signup_date` (DATE): Standard date tracking when the user profile was created.
-*   `referral_source` (VARCHAR): Direct attribute tracking user acquisition channel origins.
+# Project Explanation
 
-### 2. Plans
-Houses available tier parameters, prices, and concurrent structural streams.
-*   `plan_id` (INT, Primary Key): Unique functional identifier for the subscription plan tier.
-*   `plan_name` (VARCHAR): Operational identifier naming the tier (Basic, Standard, Premium).
-*   `monthly_price` (DECIMAL): Base pricing metric capturing monthly recurring income amounts.
-*   `max_screens` (INT): Total integer allowance of parallel streams.
+MetricStream is designed to simulate the backend database of a streaming platform.
 
-### 3. Subscriptions
-Maintains time-series financial life logs and operational service states.
-*   `sub_id` (INT, Primary Key): Unique billing system relationship row index.
-*   `user_id` (INT, Foreign Key): System relationship index referencing `Users(user_id)`.
-*   `plan_id` (INT, Foreign Key): System relationship index referencing `Plans(plan_id)`.
-*   `start_date` (DATE): Active opening stamp for the current subscription tier term.
-*   `end_date` (DATE): Closing or renewal date indicator for the current subscription tier term.
-*   `status` (VARCHAR): Descriptive system status text (Active, Cancelled, Expired).
+The system stores:
 
-### 4. Usage_Logs
-Logs telemetry metrics for stream sessions.
-*   `log_id` (INT, Primary Key): Unique streaming event index.
-*   `user_id` (INT, Foreign Key): System relationship index referencing `Users(user_id)`.
-*   `activity_date` (DATE): Calendar stamp tracking exactly when the streaming session occurred.
-*   `minutes_streamed` (INT): Performance duration tracking viewing lengths.
-*   `device_type` (VARCHAR): Categorical text capturing screen forms (Mobile, Laptop, Smart TV, Web).
+- User account information
+- Subscription plans
+- Customer subscription history
+- Streaming activity logs
 
-## 4. How to Run It and Get Output
+Using these interconnected tables, the database can answer important business questions such as:
 
-### Execution Environment Setup
-1. Open your database GUI tool (such as **pgAdmin 4** or **DBeaver**) connected to your target **PostgreSQL** instance.
-2. Open a new Query Tool session and execute the structural commands found in your modified `schema.sql` script to establish the database layout.
-3. Open a separate query panel, copy the full dataset from your corrected `data_import.sql` script, and execute it to populate your relational tables.
+- Monthly Recurring Revenue (MRR)
+- Active subscriber count
+- Subscription churn
+- Device usage statistics
+- Country-wise user distribution
+- User engagement analysis
 
-### Extracting System Output
-To verify system viability and read data metrics, open your script containing `analytics_queries.sql` and run individual analytical commands. 
+The database follows normalization principles to minimize redundancy while maintaining efficient relationships between entities.
 
-For example, highlight and run the following query to view total active streams by device:
+---
+
+# Features
+
+- User profile management
+- Subscription plan management
+- Subscription lifecycle tracking
+- Streaming activity logging
+- Business analytics through SQL
+- Normalized relational schema
+- Primary and Foreign Key constraints
+
+---
+
+# Entity Relationship Diagram
+
+The database contains four primary entities connected through one-to-many relationships.
+
+- **Users → Subscriptions (1:N)**  
+  A user can have multiple subscription records over time.
+
+- **Plans → Subscriptions (1:N)**  
+  A single subscription plan can be used by many subscribers.
+
+- **Users → Usage Logs (1:N)**  
+  A user can generate multiple streaming sessions.
+
+```mermaid
+erDiagram
+    USERS ||--o{ SUBSCRIPTIONS : "has"
+    PLANS ||--o{ SUBSCRIPTIONS : "defines"
+    USERS ||--o{ USAGE_LOGS : "generates"
+
+    USERS {
+        int user_id PK
+        varchar name
+        varchar email
+        varchar country
+        date signup_date
+        varchar referral_source
+    }
+
+    PLANS {
+        int plan_id PK
+        varchar plan_name
+        decimal monthly_price
+        int max_screens
+    }
+
+    SUBSCRIPTIONS {
+        int sub_id PK
+        int user_id FK
+        int plan_id FK
+        date start_date
+        date end_date
+        varchar status
+    }
+
+    USAGE_LOGS {
+        int log_id PK
+        int user_id FK
+        date activity_date
+        int minutes_streamed
+        varchar device_type
+    }
+```
+
+---
+
+# Database Schema
+
+## 1. Users
+
+Stores customer account information.
+
+| Column | Data Type | Description |
+|---------|-----------|-------------|
+| user_id | INT | Primary Key |
+| name | VARCHAR(100) | Customer name |
+| email | VARCHAR(100) | Unique email address |
+| country | VARCHAR(50) | Country of residence |
+| signup_date | DATE | Registration date |
+| referral_source | VARCHAR(50) | Marketing acquisition source |
+
+---
+
+## 2. Plans
+
+Stores subscription plan information.
+
+| Column | Data Type | Description |
+|---------|-----------|-------------|
+| plan_id | INT | Primary Key |
+| plan_name | VARCHAR(50) | Plan name |
+| monthly_price | DECIMAL | Monthly subscription fee |
+| max_screens | INT | Maximum simultaneous screens |
+
+---
+
+## 3. Subscriptions
+
+Tracks user subscription history.
+
+| Column | Data Type | Description |
+|---------|-----------|-------------|
+| sub_id | INT | Primary Key |
+| user_id | INT | Foreign Key → Users |
+| plan_id | INT | Foreign Key → Plans |
+| start_date | DATE | Subscription start date |
+| end_date | DATE | Subscription end date |
+| status | VARCHAR(20) | Active / Cancelled / Expired |
+
+---
+
+## 4. Usage_Logs
+
+Stores streaming session information.
+
+| Column | Data Type | Description |
+|---------|-----------|-------------|
+| log_id | INT | Primary Key |
+| user_id | INT | Foreign Key → Users |
+| activity_date | DATE | Streaming date |
+| minutes_streamed | INT | Total minutes streamed |
+| device_type | VARCHAR(50) | Mobile, Laptop, Smart TV, Web, etc. |
+
+---
+
+# Database Relationships
+
+| Parent Table | Child Table | Relationship |
+|--------------|-------------|--------------|
+| Users | Subscriptions | One-to-Many |
+| Plans | Subscriptions | One-to-Many |
+| Users | Usage_Logs | One-to-Many |
+
+---
+
+# Technologies Used
+
+- PostgreSQL
+- SQL
+- pgAdmin 4 / DBeaver
+- Mermaid ER Diagram
+
+---
+
+# How to Run the Project
+
+## Step 1: Create the Database
+
 ```sql
-SELECT device_type, COUNT(log_id) AS total_sessions
+CREATE DATABASE metricstream;
+```
+
+Connect to the newly created database.
+
+---
+
+## Step 2: Create Tables
+
+Run:
+
+```
+schema.sql
+```
+
+This creates all required tables and relationships.
+
+---
+
+## Step 3: Insert Sample Data
+
+Run:
+
+```
+data_import.sql
+```
+
+This populates the database with sample records.
+
+---
+
+## Step 4: Execute Analytical Queries
+
+Run:
+
+```
+analytics_queries.sql
+```
+
+Each query demonstrates a different business insight.
+
+---
+
+# Sample SQL Queries
+
+## 1. Device-wise Streaming Sessions
+
+```sql
+SELECT device_type,
+       COUNT(log_id) AS total_sessions
 FROM Usage_Logs
 GROUP BY device_type;
+```
+
+---
+
+## 2. Active Subscribers
+
+```sql
+SELECT COUNT(*)
+FROM Subscriptions
+WHERE status='Active';
+```
+
+---
+
+## 3. Monthly Recurring Revenue (MRR)
+
+```sql
+SELECT SUM(p.monthly_price) AS monthly_revenue
+FROM Subscriptions s
+JOIN Plans p
+ON s.plan_id = p.plan_id
+WHERE s.status='Active';
+```
+
+---
+
+## 4. Country-wise Users
+
+```sql
+SELECT country,
+       COUNT(*) AS users
+FROM Users
+GROUP BY country;
+```
+
+---
+
+## 5. Total Streaming Time per User
+
+```sql
+SELECT u.name,
+       SUM(l.minutes_streamed) AS total_minutes
+FROM Users u
+JOIN Usage_Logs l
+ON u.user_id = l.user_id
+GROUP BY u.name;
+```
+
+---
+
+# Expected Output Example
+
+### Device Usage
+
+| Device | Sessions |
+|---------|----------|
+| Mobile | 18 |
+| Laptop | 10 |
+| Smart TV | 7 |
+| Web | 5 |
+
+---
+
+### Active Subscribers
+
+| Active Users |
+|--------------|
+| 12 |
+
+---
+
+### Monthly Revenue
+
+| Revenue |
+|----------|
+| 369.88 |
+
+---
+
+# Future Improvements
+
+- Payment history table
+- Watch history table
+- Content catalog
+- Genres and categories
+- Multiple user profiles
+- Recommendation engine support
+- Stored procedures and triggers
+- Views for analytics dashboards
+
+---
+
+# Learning Outcomes
+
+This project demonstrates:
+
+- Relational database design
+- Database normalization
+- Primary and Foreign Keys
+- One-to-Many relationships
+- SQL joins
+- Aggregate functions
+- GROUP BY
+- Business analytics queries
+- Database documentation
+
+---
+
+# Author
+
+**Zeel Pansuriya**
+
+Database Management System Project
